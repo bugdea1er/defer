@@ -53,25 +53,22 @@ namespace deferred {
 #define DEFER_UNUSED
 #endif
 
-/// Helper tag to use for creating a defer statement
-/// inside of a macro
-struct tag {};
-
 /// Defer statement implementation;
 /// runs the closure it contains when the destructor is called
 template<typename F>
 class defer_stmt {
     F body;                 ///< Closure executed when the destructor is called
     bool is_engaged = true; ///< Whether this statement should execute the body
+    friend struct tag;      ///< allows access to the closure constructor
+
+    /// Creates a defer statement from a given @p closure
+    defer_stmt(F&& closure) noexcept : body(std::move(closure)) {}
 
 public:
     /// Creates a defer statement from a moved @p other
     defer_stmt(defer_stmt&& other) noexcept : body(std::move(other.body)) {
         other.is_engaged = false;
     }
-
-    /// Creates a defer statement from a given @p closure
-    explicit defer_stmt(F&& closure) noexcept : body(std::move(closure)) {}
 
     /// Runs the closure it contains when the enclosing scope is exited
     ~defer_stmt() noexcept { if (this->is_engaged) this->body(); }
@@ -81,10 +78,13 @@ public:
     auto operator=(defer_stmt&&) = delete;         ///< not move-assignable
 };
 
-/// Creates a defer statement from the given @p closure
-template<typename F>
-inline auto operator<<(tag, F&& closure) noexcept {
-    return defer_stmt<typename std::decay<F>::type>{ std::forward<F>(closure) };
-}
+/// Helper tag for creating a defer statement inside of a macro
+struct tag {
+    /// Creates a defer statement from the given @p closure
+    template<typename F>
+    defer_stmt<typename std::decay<F>::type> operator<<(F&& closure) noexcept {
+        return { std::forward<F>(closure) };
+    }
+};
 
 }    // namespace deferred
