@@ -58,20 +58,23 @@ namespace deferred {
 struct tag {};
 
 /// Defer statement implementation;
-/// runs the substatement it contains when the destructor is called
+/// runs the closure it contains when the destructor is called
 template<typename F>
 class defer_stmt {
-    F body;    ///< Substatement that is executed when the destructor is called
+    F body;                 ///< Closure executed when the destructor is called
+    bool is_engaged = true; ///< Whether this statement should execute the body
 
 public:
     /// Creates a defer statement from a moved @p other
-    defer_stmt(defer_stmt&& other) noexcept : body(std::move(other.body)) {}
+    defer_stmt(defer_stmt&& other) noexcept : body(std::move(other.body)) {
+        other.is_engaged = false;
+    }
 
     /// Creates a defer statement from a given @p closure
     explicit defer_stmt(F&& closure) noexcept : body(std::move(closure)) {}
 
-    /// Runs the substatement it contains when the enclosing scope is exited
-    ~defer_stmt() noexcept { this->body(); }
+    /// Runs the closure it contains when the enclosing scope is exited
+    ~defer_stmt() noexcept { if (this->is_engaged) this->body(); }
 
     defer_stmt(const defer_stmt&) = delete;        ///< not copy-constructible
     auto operator=(const defer_stmt&) = delete;    ///< not copy-assignable
