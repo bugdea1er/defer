@@ -1,6 +1,7 @@
 #include <defer/defer.hpp>
 
 #include <gtest/gtest.h>
+#include <vector>
 
 TEST(DeferTest, ExecutedAtBlockLeaving) {
     bool flag = false;
@@ -44,4 +45,26 @@ TEST(DeferTest, ExecutedAtThrow) {
     EXPECT_FALSE(flag);
     EXPECT_THROW(func(), int);
     EXPECT_TRUE(flag);
+}
+
+TEST(DeferTest, ExecutionOrderInOneDefer) {
+    std::vector<int> vector;
+    {
+        defer {
+            vector.push_back(1);
+            vector.push_back(2);
+        };
+    }
+
+    EXPECT_EQ(vector, std::vector<int>({1, 2}));
+}
+
+TEST(DeferTest, ExecutionOrderMultipleDefers) {
+    std::vector<int> vector;
+    {
+        defer { vector.push_back(1); };
+        defer { vector.push_back(2); };
+    }
+
+    EXPECT_EQ(vector, std::vector<int>({2, 1}));
 }
