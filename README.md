@@ -2,6 +2,13 @@
 
 The defer statement defers execution until the current scope is exited, and consists of the defer keyword and the statements to be executed later.
 
+
+> [!NOTE]
+> [RAII](https://en.cppreference.com/w/cpp/language/raii) approach is still recommended, especially when you want to transfer the ownership of the aquired objects. Checkout [C++ Code Guidelines](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#e6-use-raii-to-prevent-leaks) on this recommendation.
+> Use this defer syntax only when working with older (e.g. C) APIs and without transferring ownership.
+
+## Introduction
+
 The defer statement is used to execute a set of statements before the code execution leaves the current block of code. This is useful for performing necessary cleanup tasks, regardless of how the execution leaves the block of code. For instance, it can be used to ensure that file descriptors are closed and memory is freed.
 
 > [!CAUTION]
@@ -24,5 +31,34 @@ auto readfile() {
 The above example uses a defer statement to ensure that the file is always
 closes when returning or throwing from this function.
 
-> [!NOTE]
-> Unlike the Swift `defer`, this implementation executes the deferred actions in the same order they are written in the source code
+## Integration
+
+### Copy a single file
+
+Since this is a header-only library, you can just copy the [defer.hpp](https://github.com/bugdea1er/defer/blob/main/include/defer/defer.hpp) file to your project and enable C++11 
+
+### CMake integration
+
+You can also use the CMake interface target `defer::defer` and described belowю
+
+#### Embedded
+
+To embed the library into your existing CMake project, place the entire source tree in a subdirectory (for example, using `git submodule` commands) and call `add_subdirectory()` in your `CMakeLists.txt` file:
+```cmake
+add_subdirectory(defer)
+...
+add_library(foo ...)
+target_link_libraries(foo PRIVATE defer::defer)
+```
+
+#### FetchContent
+
+You can also use the FetchContent functions to automatically download a dependency. Put this in your `CMakeLists.txt` file:
+```cmake
+include(FetchContent)
+
+FetchContent_Declare(defer URL https://github.com/bugdea1er/defer/releases/download/v1.0/defer.tar.xz)
+FetchContent_MakeAvailable(defer)
+
+target_link_libraries(foo PRIVATE defer::defer)
+```
