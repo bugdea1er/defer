@@ -39,7 +39,7 @@ Since this is a header-only library, you can just copy the [defer.hpp](https://g
 
 ### CMake integration
 
-You can also use the CMake interface target `defer::defer` and described belowю
+You can also use the CMake interface target `defer::defer` and described below:
 
 #### Embedded
 
