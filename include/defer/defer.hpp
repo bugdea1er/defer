@@ -57,9 +57,9 @@ namespace deferred {
 /// runs the closure it contains when the destructor is called
 template<typename F>
 class defer_stmt {
-    F body;                 ///< Closure executed when the destructor is called
-    bool is_engaged = true; ///< Whether this statement should execute the body
-    friend struct tag;      ///< allows access to the closure constructor
+    F body;                  ///< Closure executed when the destructor is called
+    bool is_engaged = true;  ///< Whether this statement should execute the body
+    friend struct tag;       ///< allows access to the closure constructor
 
     /// Creates a defer statement from a given @p closure
     defer_stmt(F&& closure) noexcept : body(std::move(closure)) {}
@@ -73,9 +73,9 @@ public:
     /// Runs the closure it contains when the enclosing scope is exited
     ~defer_stmt() noexcept { if (this->is_engaged) this->body(); }
 
-    defer_stmt(const defer_stmt&) = delete;        ///< not copy-constructible
-    auto operator=(const defer_stmt&) = delete;    ///< not copy-assignable
-    auto operator=(defer_stmt&&) = delete;         ///< not move-assignable
+    defer_stmt(const defer_stmt&) = delete;      ///< not copy-constructible
+    auto operator=(const defer_stmt&) = delete;  ///< not copy-assignable
+    auto operator=(defer_stmt&&) = delete;       ///< not move-assignable
 };
 
 /// Helper tag for creating a defer statement inside of a macro
@@ -87,4 +87,4 @@ struct tag {
     }
 };
 
-}    // namespace deferred
+}  // namespace deferred
